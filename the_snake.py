@@ -26,7 +26,7 @@ APPLE_COLOR = (255, 0, 0)
 SNAKE_COLOR = (0, 255, 0)
 
 # Скорость движения змейки:
-SPEED = 20
+SPEED = 10
 
 # Настройка игрового окна:
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
@@ -61,7 +61,13 @@ class Apple(GameObject):
 
     def randomize_position(self):
         """Return tuple of random cords for apple"""
-        return (randint(0, SCREEN_WIDTH), randint(0, SCREEN_HEIGHT))
+        cell_x, cell_y = (
+            randint(0, SCREEN_WIDTH // GRID_SIZE - 1),
+            randint(0, SCREEN_HEIGHT // GRID_SIZE - 1)
+        )
+
+        return (cell_x * GRID_SIZE, cell_y * GRID_SIZE)
+
 
     def draw(self):
         """Draw an apple"""
@@ -91,17 +97,20 @@ class Snake(GameObject):
 
     def move(self, need_to_grow):
         """Moves snake"""
-        current_head_x, current_head_y = self.positions[0]
+        current_head_x, current_head_y = self.get_head_position()
         delta_x, delta_y = self.direction
         new_head = (
-            current_head_x + delta_x * GRID_SIZE,
-            current_head_y + delta_y * GRID_SIZE
+            (current_head_x + delta_x * GRID_SIZE) % SCREEN_WIDTH,
+            (current_head_y + delta_y * GRID_SIZE) % SCREEN_HEIGHT
         )
 
         self.positions = [new_head] + self.positions
 
         if not need_to_grow:
             self.positions.pop()
+
+        if self.get_head_position() in self.positions[1:]:
+            self.reset()
 
     def draw(self):
         """Draw a snake"""
@@ -116,7 +125,8 @@ class Snake(GameObject):
 
     def reset(self):
         """Resets snake"""
-        self.__init__()
+        self.__init__(positions=[self.get_head_position()], 
+                      direction=self.direction)
 
 
 def handle_keys(game_object):
@@ -142,8 +152,6 @@ def main():
 
     snake = Snake()
     apple = Apple()
-    snake.draw()
-    apple.draw()
 
     while True:
         clock.tick(SPEED)
@@ -156,9 +164,8 @@ def main():
         else:
             need_to_grow = False
         snake.move(need_to_grow)
-        if snake.get_head_position() in snake.positions:
-            snake.reset()
 
+        screen.fill(BOARD_BACKGROUND_COLOR)
         snake.draw()
         apple.draw()
         pygame.display.update()
