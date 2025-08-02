@@ -77,7 +77,6 @@ class Snake(GameObject):
                  next_direction=None, body_color=SNAKE_COLOR):
         if positions is None:
             positions = [(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)]
-
         super().__init__(color=body_color)
         self.positions = positions
         self.length = length
@@ -90,26 +89,26 @@ class Snake(GameObject):
             self.direction = self.next_direction
             self.next_direction = None
 
-    def move(self, need_to_grove):
+    def move(self, need_to_grow):
         """Moves snake"""
-        self.position = [self.position[0] + self.next_direction] \
-            + self.position if need_to_grove else self.position[:-1]
+        current_head_x, current_head_y = self.positions[0]
+        delta_x, delta_y = self.direction
+        new_head = (
+            current_head_x + delta_x * GRID_SIZE,
+            current_head_y + delta_y * GRID_SIZE
+        )
+
+        self.positions = [new_head] + self.positions
+
+        if not need_to_grow:
+            self.positions.pop()
 
     def draw(self):
         """Draw a snake"""
-        for position in self.positions[:-1]:
-            rect = (pygame.Rect(position, (GRID_SIZE, GRID_SIZE)))
+        for position in self.positions:
+            rect = pygame.Rect(position, (GRID_SIZE, GRID_SIZE))
             pygame.draw.rect(screen, self.body_color, rect)
             pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
-
-        # Отрисовка головы змейки
-        head_rect = pygame.Rect(self.positions[0], (GRID_SIZE, GRID_SIZE))
-        pygame.draw.rect(screen, self.body_color, head_rect)
-        pygame.draw.rect(screen, BORDER_COLOR, head_rect, 1)
-
-        # Затирание последнего сегмента
-        last_rect = pygame.Rect(self.positions[-1], (GRID_SIZE, GRID_SIZE))
-        pygame.draw.rect(screen, BOARD_BACKGROUND_COLOR, last_rect)
 
     def get_head_position(self):
         """Returns snake's head position"""
@@ -152,11 +151,11 @@ def main():
 
         snake.update_direction()
         if snake.get_head_position() == apple.position:
-            need_to_grove = True
+            need_to_grow = True
             apple = Apple()
         else:
-            need_to_grove = False
-        snake.move(need_to_grove)
+            need_to_grow = False
+        snake.move(need_to_grow)
         if snake.get_head_position() in snake.positions:
             snake.reset()
 
