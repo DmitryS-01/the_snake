@@ -68,7 +68,6 @@ class Apple(GameObject):
 
         return (cell_x * GRID_SIZE, cell_y * GRID_SIZE)
 
-
     def draw(self):
         """Draw an apple"""
         rect = pygame.Rect(self.position, (GRID_SIZE, GRID_SIZE))
@@ -125,7 +124,7 @@ class Snake(GameObject):
 
     def reset(self):
         """Resets snake"""
-        self.__init__(positions=[self.get_head_position()], 
+        self.__init__(positions=[self.get_head_position()],
                       direction=self.direction)
 
 
@@ -160,7 +159,8 @@ def main():
         snake.update_direction()
         if snake.get_head_position() == apple.position:
             need_to_grow = True
-            apple = Apple()
+            while apple.position in snake.positions:
+                apple = Apple()
         else:
             need_to_grow = False
         snake.move(need_to_grow)
